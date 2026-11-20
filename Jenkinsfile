@@ -17,15 +17,11 @@ pipeline {
             }
         }
 
-        stage('API tests') {
+        // Один запуск на всі проєкти (api + ui): так junit.xml і HTML-звіт
+        // містять усі тести. Окремі запуски перезаписували б один одного.
+        stage('Tests') {
             steps {
-                sh 'npx playwright test --project=api'
-            }
-        }
-
-        stage('UI tests') {
-            steps {
-                sh 'npx playwright test --project=ui'
+                sh 'npx playwright test'
             }
         }
     }
