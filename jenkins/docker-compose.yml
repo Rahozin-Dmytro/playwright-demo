@@ -3,8 +3,12 @@ services:
     build: .
     container_name: jenkins
     environment:
-      # дозволяє checkout з локальної папки /repo (лише для локального навчання)
-      JAVA_OPTS: "-Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true"
+      # 1) дозволяє checkout з локальної папки /repo
+      # 2) вимикає CSP, інакше HTML-звіт Playwright відкривається чорним
+      # (обидва налаштування лише для локального навчання)
+      JAVA_OPTS: >-
+        -Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true
+        -Dhudson.model.DirectoryBrowserSupport.CSP=""
     ports:
       - "8080:8080"
     volumes:
