@@ -1,8 +1,9 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 
 export class InventoryPage {
   readonly title: Locator;
   readonly items: Locator;
+  readonly itemImages: Locator;
   readonly cartBadge: Locator;
   readonly cartLink: Locator;
   readonly sort: Locator;
@@ -10,6 +11,7 @@ export class InventoryPage {
   constructor(private page: Page) {
     this.title = page.getByTestId('title');
     this.items = page.getByTestId('inventory-item');
+    this.itemImages = page.locator('img.inventory_item_img');
     this.cartBadge = page.getByTestId('shopping-cart-badge');
     this.cartLink = page.getByTestId('shopping-cart-link');
     this.sort = page.getByTestId('product-sort-container');
@@ -40,11 +42,11 @@ export class InventoryPage {
     return this.page.getByTestId('inventory-item-name').allTextContents();
   }
 
-  async openCart() {
-    await this.cartLink.click();
+  async imageSources(): Promise<(string | null)[]> {
+    return this.itemImages.evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')));
   }
 
-  async expectLoaded() {
-    await expect(this.title).toHaveText('Products');
+  async openCart() {
+    await this.cartLink.click();
   }
 }

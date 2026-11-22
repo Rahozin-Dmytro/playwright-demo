@@ -1,22 +1,20 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 
 export class CartPage {
   readonly items: Locator;
+  readonly itemNames: Locator;
   readonly checkoutButton: Locator;
   readonly continueShopping: Locator;
 
   constructor(private page: Page) {
     this.items = page.getByTestId('inventory-item');
+    this.itemNames = page.getByTestId('inventory-item-name');
     this.checkoutButton = page.getByTestId('checkout');
     this.continueShopping = page.getByTestId('continue-shopping');
   }
 
-  async expectItemCount(n: number) {
-    await expect(this.items).toHaveCount(n);
-  }
-
-  async expectHasItem(name: string) {
-    await expect(this.page.getByTestId('inventory-item-name').filter({ hasText: name })).toBeVisible();
+  item(name: string): Locator {
+    return this.itemNames.filter({ hasText: name });
   }
 
   async checkout() {

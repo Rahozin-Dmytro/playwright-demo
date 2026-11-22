@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 
 export class LoginPage {
   readonly username: Locator;
@@ -21,9 +21,5 @@ export class LoginPage {
     await this.username.fill(username);
     await this.password.fill(password);
     await this.loginButton.click();
-  }
-
-  async expectError(text: string) {
-    await expect(this.error).toContainText(text);
   }
 }

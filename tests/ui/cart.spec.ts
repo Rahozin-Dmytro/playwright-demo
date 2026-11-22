@@ -9,8 +9,8 @@ test.describe('Cart', () => {
     await inventoryPage.addToCart('sauce-labs-backpack');
     await expect(inventoryPage.cartBadge).toHaveText('1');
     await inventoryPage.openCart();
-    await cartPage.expectItemCount(1);
-    await cartPage.expectHasItem('Sauce Labs Backpack');
+    await expect(cartPage.items).toHaveCount(1);
+    await expect(cartPage.item('Sauce Labs Backpack')).toBeVisible();
   });
 
   test('add two items @regression', async ({ inventoryPage, cartPage }) => {
@@ -18,7 +18,7 @@ test.describe('Cart', () => {
     await inventoryPage.addToCart('sauce-labs-bike-light');
     await expect(inventoryPage.cartBadge).toHaveText('2');
     await inventoryPage.openCart();
-    await cartPage.expectItemCount(2);
+    await expect(cartPage.items).toHaveCount(2);
   });
 
   test('remove item from inventory page @regression', async ({ inventoryPage }) => {

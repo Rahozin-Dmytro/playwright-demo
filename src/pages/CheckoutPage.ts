@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 
 export class CheckoutPage {
   readonly firstName: Locator;
@@ -28,9 +28,5 @@ export class CheckoutPage {
 
   async finish() {
     await this.finishButton.click();
-  }
-
-  async expectComplete() {
-    await expect(this.completeHeader).toHaveText('Thank you for your order!');
   }
 }
