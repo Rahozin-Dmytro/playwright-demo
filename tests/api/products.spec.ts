@@ -7,7 +7,7 @@ test.describe('Products API', () => {
 
     expect(response.status()).toBe(200);
     expect(Array.isArray(body.products)).toBe(true);
-    expect(body.products).toHaveLength(30); // limit за замовчуванням
+    expect(body.products).toHaveLength(30); // default limit
     expect(body.total).toBeGreaterThan(0);
   });
 
@@ -29,7 +29,7 @@ test.describe('Products API', () => {
 
     expect(response.status()).toBe(200);
     expect(body.products.length).toBeGreaterThan(0);
-    // кожен знайдений продукт має мати "phone" у назві/описі/категорії/тегах
+    // every result must mention "phone" in its title/description/category/tags
     for (const p of body.products) {
       expect(JSON.stringify(p).toLowerCase()).toContain('phone');
     }

@@ -1,6 +1,6 @@
 import { test, expect } from '../../src/fixtures/api';
 
-// dummyjson симулює зміни: PUT/DELETE повертають результат, але нічого не зберігають.
+// dummyjson simulates writes: PUT/DELETE return a result but nothing is persisted.
 test.describe('Carts API', () => {
   test('get cart by id @smoke', async ({ request }) => {
     const response = await request.get('/carts/1');

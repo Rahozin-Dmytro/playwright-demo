@@ -14,7 +14,8 @@ It tests two public practice sites, so anyone can clone and run it without crede
 ## Tech stack
 
 - Playwright Test, TypeScript
-- Page Object Model, custom fixtures
+- Page Object Model, custom fixtures (test- and worker-scoped)
+- Strict TypeScript type check in CI (`tsc --noEmit`)
 - Test tags: `@smoke` / `@regression`
 - Reports: HTML (Playwright) and JUnit XML (for Jenkins)
 - CI: GitHub Actions, Jenkins (Docker)
@@ -29,24 +30,28 @@ playwright-demo/
 ├── src/
 │   ├── pages/              LoginPage, InventoryPage, CartPage, CheckoutPage
 │   ├── fixtures/           ui.ts (page objects), api.ts (auth token + API client)
-│   └── data/               test users and checkout data
+│   └── data/               UI/API test users and checkout data
 ├── jenkins/                Dockerfile + docker-compose for a local Jenkins
 ├── Jenkinsfile             Jenkins pipeline
 ├── .github/workflows/      GitHub Actions pipeline
-└── playwright.config.ts
+├── playwright.config.ts
+└── tsconfig.json
 ```
 
 ## Key design decisions
 
-- **Page Object Model.** Selectors live in `src/pages`, tests only describe behaviour. If a locator changes, it is fixed in one place.
-- **Fixtures.** `src/fixtures/ui.ts` provides ready page objects; `src/fixtures/api.ts` provides `authToken` and an authorized `authApi` client, so tests contain no login boilerplate.
+- **Page Object Model without assertions.** Page objects in `src/pages` hold locators and actions only; all `expect` calls live in the tests. If a locator changes, it is fixed in one place, and each test shows what it verifies.
+- **Fixtures.** `src/fixtures/ui.ts` provides ready page objects; `src/fixtures/api.ts` provides an authorized `authApi` client, so tests contain no login boilerplate.
+- **API login once per worker.** `authToken` is a worker-scoped fixture: the token is fetched once per worker and reused by every API test, instead of logging in before each test.
+- **Known bugs are explicit.** The `problem_user` test asserts the correct behaviour (six different product images) and is marked `test.fail()`. The report shows the known bug, and once it is fixed the test starts failing as a signal to remove the annotation.
 - **Login once via `storageState`.** `tests/ui/auth.setup.ts` logs in a single time and saves the session to `.auth/`. The other UI tests start already logged in; the login tests reset the state explicitly.
-- **Separate projects.** `setup`, `ui` and `api` are defined in `playwright.config.ts` with their own `baseURL`, so tests use short paths like `/products/1`.
+- **Separate projects.** `setup`, `ui` and `api` are defined in `playwright.config.ts` with their own `baseURL` (overridable via `UI_BASE_URL` / `API_BASE_URL`), so tests use short paths like `/products/1`.
+- **Test data in one place.** UI users and the dummyjson credentials live in `src/data/users.ts`; the API credentials can be overridden via `API_USERNAME` / `API_PASSWORD`.
 - **Stable selectors.** saucedemo uses `data-test` attributes, so `testIdAttribute` is set to `data-test` and tests use `getByTestId`.
 
 ## Getting started
 
-Requirements: Node.js 20+.
+Requirements: Node.js 22 (see `.nvmrc`).
 
 ```bash
 npm ci
@@ -56,29 +61,32 @@ npx playwright install chromium
 Run all tests (UI + API):
 
 ```bash
-npx playwright test
+npm test
 ```
 
-Useful variations:
+Scripts:
 
 ```bash
-npx playwright test --project=api          # API only
-npx playwright test --project=ui           # UI only
-npx playwright test --grep @smoke          # smoke subset
-npx playwright test --headed --project=ui  # watch the browser
-npx playwright show-report                 # open the last HTML report
+npm run test:api          # API only
+npm run test:ui           # UI only
+npm run test:smoke        # @smoke subset
+npm run test:regression   # @regression subset
+npm run test:headed       # UI tests with a visible browser
+npm run report            # open the last HTML report
+npm run typecheck         # TypeScript type check
 ```
 
 ## Test counts
 
-- 15 UI tests and 18 API tests, plus one auth setup step (34 in a full run)
-- 9 tagged `@smoke`, 24 tagged `@regression`
+- 16 UI tests and 18 API tests, plus one auth setup step (35 in a full run)
+- 9 tagged `@smoke`, 25 tagged `@regression`
+- 1 test marked as an expected failure (known `problem_user` bug)
 
 ## CI
 
 ### GitHub Actions
 
-`.github/workflows/playwright.yml` runs on every push and pull request to `main`: checkout, install dependencies and browsers, run all tests, upload the HTML report as an artifact.
+`.github/workflows/playwright.yml` runs on every push and pull request to `main`: install dependencies, type check, install Chromium, run all tests, then upload the HTML report and `test-results/` (JUnit XML, traces) as artifacts.
 
 ### Jenkins (local, in Docker)
 
@@ -96,7 +104,11 @@ Open http://localhost:8080, install the suggested plugins, then create a **Pipel
 - SCM: Git, repository URL of this repo
 - Branch: `*/main`, Script Path: `Jenkinsfile`
 
-The pipeline (`Jenkinsfile`) runs `npm ci` and `npx playwright test`, then publishes JUnit results (Test Result tab) and the Playwright HTML report.
+The pipeline (`Jenkinsfile`) runs `npm ci`, the type check and the tests, then publishes JUnit results (Test Result tab), the Playwright HTML report and archives `test-results/` (traces and screenshots of failures).
+
+Use **Build with Parameters** to pick a suite: `all`, `smoke`, `regression`, `ui` or `api`. On the very first build the parameter is not registered yet, so the job runs `all`.
+
+> The Playwright version in `jenkins/Dockerfile` must match `@playwright/test` in `package.json` (pinned exactly, without `^`). After upgrading Playwright, rebuild the image with `docker compose up -d --build`.
 
 > The compose file disables Jenkins' Content-Security-Policy for HTML reports so the Playwright report renders. This is intended for local learning only.
 

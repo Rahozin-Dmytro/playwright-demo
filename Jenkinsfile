@@ -6,8 +6,16 @@ pipeline {
         timestamps()
     }
 
+    parameters {
+        choice(
+            name: 'SUITE',
+            choices: ['all', 'smoke', 'regression', 'ui', 'api'],
+            description: 'Which tests to run'
+        )
+    }
+
     environment {
-        CI = 'true'   // вмикає retries/forbidOnly з playwright.config.ts
+        CI = 'true'   // enables retries/forbidOnly from playwright.config.ts
     }
 
     stages {
@@ -17,20 +25,35 @@ pipeline {
             }
         }
 
-        // Один запуск на всі проєкти (api + ui): так junit.xml і HTML-звіт
-        // містять усі тести. Окремі запуски перезаписували б один одного.
+        stage('Type check') {
+            steps {
+                sh 'npm run typecheck'
+            }
+        }
+
+        // A single run for the chosen suite, so junit.xml and the HTML report
+        // contain every test. Separate runs would overwrite each other's reports.
         stage('Tests') {
             steps {
-                sh 'npx playwright test'
+                script {
+                    def args = [
+                        all       : '',
+                        smoke     : '--grep @smoke',
+                        regression: '--grep @regression',
+                        ui        : '--project=ui',
+                        api       : '--project=api',
+                    ][params.SUITE ?: 'all']
+                    sh "npx playwright test ${args}"
+                }
             }
         }
     }
 
     post {
         always {
-            // junit.xml -> вкладка Tests у Jenkins
+            // junit.xml -> Test Result tab and trend chart
             junit allowEmptyResults: true, testResults: 'test-results/junit.xml'
-            // HTML-звіт Playwright -> посилання на сторінці збірки
+            // Playwright HTML report -> link on the build page
             publishHTML(target: [
                 reportDir: 'playwright-report',
                 reportFiles: 'index.html',
@@ -39,6 +62,8 @@ pipeline {
                 allowMissing: true,
                 alwaysLinkToLastBuild: true
             ])
+            // Traces, screenshots and videos of failed tests
+            archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
         }
     }
 }

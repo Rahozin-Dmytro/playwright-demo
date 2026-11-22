@@ -11,9 +11,9 @@ type Pages = {
   checkoutPage: CheckoutPage;
 };
 
-// Фікстури створюють page objects автоматично, тести не роблять new вручну.
-// Авторизація береться з storageState (див. tests/ui/auth.setup.ts), тому
-// у кожному тесті вже є залогінений standard_user.
+// Fixtures create page objects automatically, so tests never call `new` themselves.
+// Auth comes from storageState (see tests/ui/auth.setup.ts), so every test
+// already starts logged in as standard_user.
 export const test = base.extend<Pages>({
   loginPage: async ({ page }, use) => use(new LoginPage(page)),
   inventoryPage: async ({ page }, use) => use(new InventoryPage(page)),

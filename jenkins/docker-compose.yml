@@ -3,13 +3,13 @@ services:
     build: .
     container_name: jenkins
     environment:
-      # Вимикає CSP, інакше HTML-звіт Playwright відкривається чорним
-      # (лише для локального навчання)
+      # Disables CSP so the Playwright HTML report renders (otherwise it is blank).
+      # For local learning only, do not use on a shared Jenkins.
       JAVA_OPTS: >-
         -Dhudson.model.DirectoryBrowserSupport.CSP=""
     ports:
       - "8080:8080"
     volumes:
-      - jenkins_home:/var/jenkins_home   # налаштування і історія збірок
+      - jenkins_home:/var/jenkins_home   # settings and build history
 volumes:
   jenkins_home:
