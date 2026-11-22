@@ -1,12 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const UI_BASE_URL = process.env.UI_BASE_URL ?? 'https://www.saucedemo.com';
+const API_BASE_URL = process.env.API_BASE_URL ?? 'https://dummyjson.com';
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
-  // html для людей, junit для Jenkins (він його читає і малює графік тестів)
+  // html for people, junit for CI (Jenkins reads it and draws the test trend)
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
@@ -22,7 +25,7 @@ export default defineConfig({
       name: 'setup',
       testMatch: /auth\.setup\.ts/,
       testDir: './tests/ui',
-      use: { ...devices['Desktop Chrome'], baseURL: 'https://www.saucedemo.com' },
+      use: { ...devices['Desktop Chrome'], baseURL: UI_BASE_URL },
     },
     {
       name: 'ui',
@@ -31,14 +34,14 @@ export default defineConfig({
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'https://www.saucedemo.com',
+        baseURL: UI_BASE_URL,
         storageState: '.auth/standard.json',
       },
     },
     {
       name: 'api',
       testDir: './tests/api',
-      use: { baseURL: 'https://dummyjson.com' },
+      use: { baseURL: API_BASE_URL },
     },
   ],
 });
