@@ -9,7 +9,7 @@ It tests two public practice sites, so anyone can clone and run it without crede
 | Layer | Target | What is covered |
 |---|---|---|
 | UI | [saucedemo.com](https://www.saucedemo.com) | Login (incl. locked-out and problem users), inventory sorting, cart, checkout |
-| API | [dummyjson.com](https://dummyjson.com) | Auth with token, products (list, search, 404, create), carts (CRUD) |
+| API | [dummyjson.com](https://dummyjson.com) | Auth with token, products (list, search, pagination, categories, 404, CRUD), carts (CRUD) |
 
 ## Tech stack
 
@@ -71,8 +71,8 @@ npx playwright show-report                 # open the last HTML report
 
 ## Test counts
 
-- 15 UI tests and 13 API tests, plus one auth setup step (29 in a full run)
-- 9 tagged `@smoke`, 19 tagged `@regression`
+- 15 UI tests and 18 API tests, plus one auth setup step (34 in a full run)
+- 9 tagged `@smoke`, 24 tagged `@regression`
 
 ## CI
 
