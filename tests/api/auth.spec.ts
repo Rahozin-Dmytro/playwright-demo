@@ -1,18 +1,13 @@
 import { test, expect } from '../../src/fixtures/api';
+import { apiUser } from '../../src/data/users';
 
-// Фікстури: request (звичайний клієнт), authToken (токен), authApi (клієнт з токеном)
+// Fixtures: request (plain client), authToken (worker-scoped token), authApi (client with token)
 
 test.describe('Auth API', () => {
   test('login with valid credentials returns token @smoke', async ({ request }) => {
-    // 1. відправити
-    const response = await request.post('/auth/login', {
-      data: { username: 'emilys', password: 'emilyspass' },
-    });
-
-    // 2. отримати тіло
+    const response = await request.post('/auth/login', { data: apiUser });
     const body = await response.json();
 
-    // 3. перевірити
     expect(response.status()).toBe(200);
     expect(typeof body.accessToken).toBe('string');
     expect(body.accessToken).toBeTruthy();
@@ -20,7 +15,7 @@ test.describe('Auth API', () => {
 
   test('login with wrong password returns 400 @regression', async ({ request }) => {
     const response = await request.post('/auth/login', {
-      data: { username: 'emilys', password: 'wrong' },
+      data: { username: apiUser.username, password: 'wrong' },
     });
     const body = await response.json();
 
@@ -34,7 +29,7 @@ test.describe('Auth API', () => {
     const body = await response.json();
 
     expect(response.status()).toBe(200);
-    expect(body.username).toBe('emilys');
+    expect(body.username).toBe(apiUser.username);
     expect(body).toHaveProperty('email');
   });
 
